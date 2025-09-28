@@ -1,31 +1,22 @@
-import { DeployFunction } from "hardhat-deploy/types";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { postDeploy } from "postdeploy";
+// deploy/00_deploy_secret_reactions.ts
+import type { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const { deployer } = await hre.getNamedAccounts();
-  const { deploy } = hre.deployments;
+// The template repo already has a postDeploy helper under scripts/utils.
+// Adjust the relative path if your template’s layout differs.
+import { postDeploy } from "../../postDeploy";
 
-  const chainId = await hre.getChainId();
-  const chainName = hre.network.name;
+const func: DeployFunction = async ( hre: HardhatRuntimeEnvironment) => {
+  const { deployments, getNamedAccounts, network} = hre;
+  const { deploy, log } = deployments;
+  const { deployer } = await getNamedAccounts();
 
-  const contractName = "FHECounter";
-  const deployed = await deploy(contractName, {
-    from: deployer,
-    log: true,
-  });
+  const res = await deploy("SecretReactions", { from: deployer, log: true, autoMine: true });
+  log(`SecretReactions deployed at ${res.address} on ${network.name}`);
 
-  console.log(`${contractName} contract address: ${deployed.address}`);
-  console.log(`${contractName} chainId: ${chainId}`);
-  console.log(`${contractName} chainName: ${chainName}`);
-
-  // Generates:
-  //  - <root>/packages/site/abi/FHECounterABI.ts
-  //  - <root>/packages/site/abi/FHECounterAddresses.ts
-  postDeploy(chainName, contractName);
+  // This is what generates site/abi/<Contract>ABI.ts and <Contract>Addresses.ts
+  await postDeploy(network.name, "SecretReactions");
 };
 
 export default func;
-
-func.id = "deploy_fheCounter"; // id required to prevent reexecution
-func.tags = ["FHECounter"];
+func.tags = ["SecretReactions"];
