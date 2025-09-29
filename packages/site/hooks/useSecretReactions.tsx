@@ -17,7 +17,7 @@ type ContractInfo = {
   chainName?: string;
 };
 
-function getSecretReactionsByChainId(chainId: number | undefined): ContractInfo {
+function byChain(chainId: number | undefined): ContractInfo {
   if (!chainId) return { abi: SecretReactionsABI.abi };
   const entry = (SecretReactionsAddresses as any)[String(chainId)];
   if (!entry?.address || entry.address === ethers.ZeroAddress) {
@@ -31,7 +31,7 @@ function getSecretReactionsByChainId(chainId: number | undefined): ContractInfo 
   };
 }
 
-export const useSecretReactions = ({
+export function useSecretReactions({
   instance,
   storage,
   chainId,
@@ -51,7 +51,7 @@ export const useSecretReactions = ({
   sameSigner: React.RefObject<(s: ethers.JsonRpcSigner | undefined) => boolean>;
   postId: `0x${string}`;
   reactionId: `0x${string}`;
-}) => {
+}) {
   const [totalHandle, setTotalHandle] = useState<string | undefined>();
   const [myHandle, setMyHandle] = useState<string | undefined>();
   const [decTotal, setDecTotal] = useState<bigint | undefined>();
@@ -65,7 +65,7 @@ export const useSecretReactions = ({
   const workingRef = useRef(false);
 
   const info = useMemo(() => {
-    const c = getSecretReactionsByChainId(chainId);
+    const c = byChain(chainId);
     infoRef.current = c;
     return c;
   }, [chainId]);
@@ -82,20 +82,33 @@ export const useSecretReactions = ({
 
   const refresh = useCallback(() => {
     if (refreshingRef.current) return;
+
+    // When handles change, clear old cleartexts
+    setDecTotal(undefined);
+    setDecMine(undefined);
+
     if (!info.address || !ethersReadonlyProvider) {
       setTotalHandle(undefined);
       setMyHandle(undefined);
       return;
     }
+
     const contract = new ethers.Contract(info.address, info.abi, ethersReadonlyProvider);
+    // use SIGNER for getMyTally so msg.sender = connected wallet
+    const rw = ethersSigner ? new ethers.Contract(info.address, info.abi, ethersSigner) : null;
+
     refreshingRef.current = true;
     setIsRefreshing(true);
-    Promise.all([
-      contract.getReactionTotal(postId, reactionId),
-      contract.getMyReaction(postId, reactionId),
-    ])
+
+
+  const total = contract.getTotal(postId, reactionId);
+  const myTotal  = rw ? rw.getMyTally(postId, reactionId) : Promise.resolve(ethers.ZeroHash as unknown as string);
+
+    Promise.all([total, myTotal])
       .then(([tot, mine]: [string, string]) => {
-        if (infoRef.current?.address === info.address && sameChain.current(chainId)) {
+        const stillSameChain = sameChain.current ? sameChain.current(chainId) : true;
+        const stillSameSigner = sameSigner.current ? sameSigner.current(ethersSigner) : true;
+        if (infoRef.current?.address === info.address && stillSameChain && stillSameSigner) {
           setTotalHandle(tot);
           setMyHandle(mine);
         }
@@ -105,14 +118,23 @@ export const useSecretReactions = ({
         refreshingRef.current = false;
         setIsRefreshing(false);
       });
-  }, [ethersReadonlyProvider, info.address, info.abi, postId, reactionId, chainId, sameChain]);
+  }, [ethersReadonlyProvider, ethersSigner, info.address, info.abi, postId, reactionId, chainId, sameChain, sameSigner]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
   const decrypt = useCallback(async (which: "total" | "mine") => {
     if (!info.address || !instance || !ethersSigner) return;
+
     const handle = which === "total" ? totalHandle : myHandle;
     if (!handle) return;
+
+    // ZeroHash = uninitialized => treat as 0
+    if (handle === ethers.ZeroHash) {
+      const zero = BigInt(0);
+      if (which === "total") setDecTotal(zero); else setDecMine(zero);
+      setMessage(`${which} = 0`);
+      return;
+    }
 
     setMessage(`Decrypt ${which}…`);
     setIsWorking(true); workingRef.current = true;
@@ -127,6 +149,7 @@ export const useSecretReactions = ({
         sig.privateKey, sig.publicKey, sig.signature,
         sig.contractAddresses, sig.userAddress, sig.startTimestamp, sig.durationDays
       );
+
       const clear = res[handle] as bigint;
       if (which === "total") setDecTotal(clear); else setDecMine(clear);
       setMessage(`${which} = ${clear.toString()}`);
@@ -140,20 +163,24 @@ export const useSecretReactions = ({
   const react = useCallback(async (amount: number) => {
     if (workingRef.current) return;
     if (!info.address || !instance || !ethersSigner || amount <= 0) return;
+
     setMessage(`React +${amount}…`);
     setIsWorking(true); workingRef.current = true;
+
     try {
-      // small delay so UI repaints before wasm work
-      await new Promise(r => setTimeout(r, 50));
-      const input = instance.createEncryptedInput(info.address, ethersSigner.address);
+      await new Promise(r => setTimeout(r, 60));
+
+      const user = await ethersSigner.getAddress();
+      const input = instance.createEncryptedInput(info.address, user);
       input.add32(amount);
       const enc = await input.encrypt();
 
       const contract = new ethers.Contract(info.address, info.abi, ethersSigner);
       const tx = await contract.react(postId, reactionId, enc.handles[0], enc.inputProof);
       await tx.wait();
+
       setMessage(`Reacted +${amount}`);
-      refresh();
+      refresh(); // pull fresh handles
     } catch (e: any) {
       setMessage(`React failed: ${e?.message ?? e}`);
     } finally {
@@ -161,17 +188,19 @@ export const useSecretReactions = ({
     }
   }, [info.address, info.abi, instance, ethersSigner, postId, reactionId, refresh]);
 
-  const unlockView = useCallback(async () => {
+  const requestTotalAccess = useCallback(async () => {
     if (!info.address || !ethersSigner) return;
-    setMessage("Unlock view…");
+
+    setMessage("Request total access…");
     setIsWorking(true); workingRef.current = true;
+
     try {
       const contract = new ethers.Contract(info.address, info.abi, ethersSigner);
-      const tx = await contract.unlockView(postId, reactionId);
+      const tx = await contract.requestTotalAccess(postId, reactionId);
       await tx.wait();
-      setMessage("Unlocked. You can decrypt the total now.");
+      setMessage("Access granted. You can decrypt the total now.");
     } catch (e: any) {
-      setMessage(`Unlock failed: ${e?.message ?? e}`);
+      setMessage(`Request failed: ${e?.message ?? e}`);
     } finally {
       setIsWorking(false); workingRef.current = false;
     }
@@ -188,10 +217,10 @@ export const useSecretReactions = ({
     decMine,
     message,
     refresh,
-    decryptTotal: () => decrypt("total"),
-    decryptMine:  () => decrypt("mine"),
     react,
-    unlockView,
+    decryptTotal: () => decrypt("total"),
+    decryptMine : () => decrypt("mine"),
+    requestTotalAccess,
     contractAddress: info.address,
   };
-};
+}

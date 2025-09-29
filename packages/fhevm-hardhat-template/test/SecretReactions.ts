@@ -17,7 +17,7 @@ describe("SecretReactions (local/mock)", function () {
   it("deploys & starts zero", async () => {
     const f = await ethers.getContractFactory("SecretReactions");
     const app = await f.deploy();
-    const h = await app.getReactionTotal(postId, R_UP);
+    const h = await app.getTotal(postId, R_UP);
     expect(ZERO.test(h)).to.eq(true);
   });
 
@@ -35,7 +35,7 @@ describe("SecretReactions (local/mock)", function () {
     enc = await fhevm.createEncryptedInput(addr, b.address).add32(2).encrypt();
     await (await app.connect(b).react(postId, R_HEART, enc.handles[0], enc.inputProof)).wait();
 
-    const hUp = await app.getReactionTotal(postId, R_UP);
+    const hUp = await app.getTotal(postId, R_UP);
     const upA = await fhevm.userDecryptEuint(FhevmType.euint32, hUp, addr, a);
     expect(upA).to.eq(1);
 
@@ -43,7 +43,7 @@ describe("SecretReactions (local/mock)", function () {
     try { await fhevm.userDecryptEuint(FhevmType.euint32, hUp, addr, b); } catch { failed = true; }
     expect(failed).to.eq(true);
 
-    const hHeart = await app.getReactionTotal(postId, R_HEART);
+    const hHeart = await app.getTotal(postId, R_HEART);
     const heartB = await fhevm.userDecryptEuint(FhevmType.euint32, hHeart, addr, b);
     expect(heartB).to.eq(2);
   });
@@ -57,12 +57,12 @@ describe("SecretReactions (local/mock)", function () {
     const enc = await fhevm.createEncryptedInput(addr, b.address).add32(3).encrypt();
     await (await app.connect(b).react(postId, R_UP, enc.handles[0], enc.inputProof)).wait();
 
-    const h = await app.getReactionTotal(postId, R_UP);
+    const h = await app.getTotal(postId, R_UP);
     let failed = false;
     try { await fhevm.userDecryptEuint(FhevmType.euint32, h, addr, a); } catch { failed = true; }
     expect(failed).to.eq(true);
 
-    await (await app.connect(a).unlockView(postId, R_UP)).wait();
+    await (await app.connect(a).requestTotalAccess(postId, R_UP)).wait();
     const aDec = await fhevm.userDecryptEuint(FhevmType.euint32, h, addr, a);
     expect(aDec).to.eq(3);
   });
@@ -76,7 +76,7 @@ describe("SecretReactions (local/mock)", function () {
     const enc = await fhevm.createEncryptedInput(addr, a.address).add32(2).encrypt();
     await (await app.connect(a).react(postId, R_HEART, enc.handles[0], enc.inputProof)).wait();
 
-    const mine = await app.connect(a).getMyReaction(postId, R_HEART);
+    const mine = await app.connect(a).getMyTally(postId, R_HEART);
     const mDec = await fhevm.userDecryptEuint(FhevmType.euint32, mine, addr, a);
     expect(mDec).to.eq(2);
   });

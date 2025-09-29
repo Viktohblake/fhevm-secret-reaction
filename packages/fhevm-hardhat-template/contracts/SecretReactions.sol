@@ -136,11 +136,4 @@ contract SecretReactions is SepoliaConfig {
         return _encryptedUserTallyByPostReactionAndUser[postId][reactionId][msg.sender];
     }
 
-    /**
-     * @notice Get the encrypted handle for a specific user’s personal tally.
-     * @dev Typically used read-only by the UI when the viewer is the same user (or for debug).
-     */
-    function getUserTally(bytes32 postId, bytes32 reactionId, address user) external view returns (euint32) {
-        return _encryptedUserTallyByPostReactionAndUser[postId][reactionId][user];
-    }
 }

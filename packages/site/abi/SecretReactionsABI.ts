@@ -19,9 +19,40 @@ export const SecretReactionsABI = {
           "internalType": "bytes32",
           "name": "reactionId",
           "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
         }
       ],
       "name": "Reacted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "postId",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "reactionId",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "viewer",
+          "type": "address"
+        }
+      ],
+      "name": "TotalAccessGranted",
       "type": "event"
     },
     {
@@ -37,7 +68,7 @@ export const SecretReactionsABI = {
           "type": "bytes32"
         }
       ],
-      "name": "getMyReaction",
+      "name": "getMyTally",
       "outputs": [
         {
           "internalType": "euint32",
@@ -61,7 +92,7 @@ export const SecretReactionsABI = {
           "type": "bytes32"
         }
       ],
-      "name": "getReactionTotal",
+      "name": "getTotal",
       "outputs": [
         {
           "internalType": "euint32",
@@ -99,12 +130,12 @@ export const SecretReactionsABI = {
         },
         {
           "internalType": "externalEuint32",
-          "name": "encAmount",
+          "name": "encryptedDelta",
           "type": "bytes32"
         },
         {
           "internalType": "bytes",
-          "name": "inputProof",
+          "name": "zkProof",
           "type": "bytes"
         }
       ],
@@ -126,7 +157,7 @@ export const SecretReactionsABI = {
           "type": "bytes32"
         }
       ],
-      "name": "unlockView",
+      "name": "requestTotalAccess",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
