@@ -1,11 +1,15 @@
-import { FHECounterDemo } from "@/components/FHECounterDemo";
+import { POSTS } from "@/lib/data";
+import { PostCard } from "@/components/PostCard";
 
-export default function Home() {
+export default function Page() {
   return (
-    <main className="">
-      <div className="flex flex-col gap-8 items-center sm:items-start w-full px-3 md:px-0">
-        <FHECounterDemo />
+    <div className="grid gap-4 mx-4">
+      <h1 className="text-2xl font-bold">Secret Reactions</h1>
+      <p className="text-gray-700">React privately; decrypt totals when authorized.</p>
+
+      <div className="grid gap-4">
+        {POSTS.map(p => <PostCard key={p.slug} {...p} />)}
       </div>
-    </main>
+    </div>
   );
 }
