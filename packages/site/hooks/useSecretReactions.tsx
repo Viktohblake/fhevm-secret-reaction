@@ -83,10 +83,6 @@ export function useSecretReactions({
   const refresh = useCallback(() => {
     if (refreshingRef.current) return;
 
-    // When handles change, clear old cleartexts
-    setDecTotal(undefined);
-    setDecMine(undefined);
-
     if (!info.address || !ethersReadonlyProvider) {
       setTotalHandle(undefined);
       setMyHandle(undefined);
@@ -106,11 +102,15 @@ export function useSecretReactions({
 
     Promise.all([total, myTotal])
       .then(([tot, mine]: [string, string]) => {
+        
         const stillSameChain = sameChain.current ? sameChain.current(chainId) : true;
         const stillSameSigner = sameSigner.current ? sameSigner.current(ethersSigner) : true;
         if (infoRef.current?.address === info.address && stillSameChain && stillSameSigner) {
           setTotalHandle(tot);
           setMyHandle(mine);
+        
+          if (tot === ethers.ZeroHash) setDecTotal(BigInt(0));
+if (mine === ethers.ZeroHash) setDecMine(BigInt(0));
         }
       })
       .catch((e: any) => setMessage(`Read failed: ${e?.message ?? e}`))
@@ -180,7 +180,8 @@ export function useSecretReactions({
       await tx.wait();
 
       setMessage(`Reacted +${amount}`);
-      refresh(); // pull fresh handles
+      await refresh(); // pull latest handles
+      await decrypt("mine"); // you can always decrypt your own tally
     } catch (e: any) {
       setMessage(`React failed: ${e?.message ?? e}`);
     } finally {
@@ -199,6 +200,8 @@ export function useSecretReactions({
       const tx = await contract.requestTotalAccess(postId, reactionId);
       await tx.wait();
       setMessage("Access granted. You can decrypt the total now.");
+      await refresh(); // pull latest handle
+      await decrypt("total"); // try to decrypt after access granted.
     } catch (e: any) {
       setMessage(`Request failed: ${e?.message ?? e}`);
     } finally {
