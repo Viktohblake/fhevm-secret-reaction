@@ -251,17 +251,18 @@ export function useSecretReactions({
 
         setMessage(`Reacted +${amount}`);
 
-        // Read fresh handles directly (don’t wait for state)
+        // Read fresh handles directly
         const { mine } = await readHandlesDirect();
 
-        // Update state handles (optional, keeps UI consistent)
+        // Update state handles
         setMyHandle(mine);
 
         await decrypt("mine");
 
         refresh();
       } catch (e: any) {
-        setMessage(`React failed: ${e?.message ?? e}`);
+        // setMessage(`React failed: ${e?.message ?? e}`);
+        setMessage("React failed");
       } finally {
         setIsWorking(false);
         workingRef.current = false;
