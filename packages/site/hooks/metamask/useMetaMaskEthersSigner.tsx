@@ -25,6 +25,8 @@ export interface UseMetaMaskEthersSignerState {
   ethersReadonlyProvider: ethers.ContractRunner | undefined;
   ethersSigner: ethers.JsonRpcSigner | undefined;
   initialMockChains: Readonly<Record<number, string>> | undefined;
+  eip1193: { request: (args: { method: string; params?: any }) => Promise<any> } | undefined;
+
 }
 
 function useMetaMaskEthersSignerInternal(parameters: { initialMockChains?: Readonly<Record<number, string>> }): UseMetaMaskEthersSignerState {
@@ -94,6 +96,42 @@ function useMetaMaskEthersSignerInternal(parameters: { initialMockChains?: Reado
     setEthersReadonlyProvider(rop);
   }, [provider, chainId, isConnected, accounts, initialMockChains]);
 
+  useEffect(() => {
+    if (!provider || !chainId || !isConnected || !accounts || accounts.length === 0) {
+      ethersSignerRef.current = undefined;
+      setEthersSigner(undefined);
+      setEthersBrowserProvider(undefined);
+      setEthersReadonlyProvider(undefined);
+      return;
+    }
+
+    console.warn(`[useMetaMaskEthersSignerInternal] create new ethers.BrowserProvider(), chainId=${chainId}`);
+
+    const bp: ethers.BrowserProvider = new ethers.BrowserProvider(provider);
+    let rop: ethers.ContractRunner = bp;
+    const rpcUrl: string | undefined = initialMockChains?.[chainId];
+    if (rpcUrl) {
+      rop = new ethers.JsonRpcProvider(rpcUrl);
+      console.warn(`[useMetaMaskEthersSignerInternal] create new readonly provider ethers.JsonRpcProvider(${rpcUrl}), chainId=${chainId}`);
+    } else {
+      console.warn(`[useMetaMaskEthersSignerInternal] use ethers.BrowserProvider() as readonly provider, chainId=${chainId}`);
+    }
+
+    const s = new ethers.JsonRpcSigner(bp, accounts[0]);
+    ethersSignerRef.current = s;
+    setEthersSigner(s);
+    setEthersBrowserProvider(bp);
+    setEthersReadonlyProvider(rop);
+  }, [provider, chainId, isConnected, accounts, initialMockChains]);
+
+  // 👇 derive EIP-1193 request-capable object from either provider or bp.provider
+  const eip1193 =
+    (provider as any)?.request
+      ? (provider as any)
+      : (ethersBrowserProvider as any)?.provider?.request
+      ? (ethersBrowserProvider as any).provider
+      : undefined;
+      
   return {
     sameChain,
     sameSigner,
@@ -106,7 +144,8 @@ function useMetaMaskEthersSignerInternal(parameters: { initialMockChains?: Reado
     ethersReadonlyProvider,
     ethersSigner,
     error,
-    initialMockChains
+    initialMockChains,
+    eip1193
   };
 }
 

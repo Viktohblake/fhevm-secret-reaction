@@ -30,11 +30,7 @@ export function ReactionBar({ slug, instance }: { slug: string; instance: any })
   });
 
   if (!isConnected) {
-    return (
-      <button className="px-3 py-2 rounded-xl bg-black text-white" onClick={connect}>
-        Connect wallet to react
-      </button>
-    );
+    return <div className="rounded-xl border p-3 text-sm text-gray-600">Connect your wallet to react.</div>;
   }
 
   if (sr.isDeployed === false) {
