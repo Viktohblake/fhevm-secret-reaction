@@ -1,9 +1,7 @@
-// deploy/00_deploy_secret_reactions.ts
 import type { DeployFunction } from "hardhat-deploy/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-// The template repo already has a postDeploy helper under scripts/utils.
-// Adjust the relative path if your template’s layout differs.
+// postDeploy helper under scripts/utils.
 import { postDeploy } from "../../postDeploy";
 
 const func: DeployFunction = async ( hre: HardhatRuntimeEnvironment) => {
@@ -14,7 +12,7 @@ const func: DeployFunction = async ( hre: HardhatRuntimeEnvironment) => {
   const res = await deploy("SecretReactions", { from: deployer, log: true, autoMine: true });
   log(`SecretReactions deployed at ${res.address} on ${network.name}`);
 
-  // This is what generates site/abi/<Contract>ABI.ts and <Contract>Addresses.ts
+  // this generates site/abi/<Contract>ABI.ts and <Contract>Addresses.ts
   await postDeploy(network.name, "SecretReactions");
 };
 

@@ -6,7 +6,6 @@ import { useMetaMaskEthersSigner } from "@/hooks/metamask/useMetaMaskEthersSigne
 const short = (a?: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "—");
 
 type Props = {
-  /** Put your Zama icon / button / link here (it will render on the far right). */
   rightIcon?: React.ReactNode;
 };
 
@@ -58,7 +57,7 @@ export function HeaderWallet({ rightIcon }: Props) {
         params: [{ eth_accounts: {} }],
       }).catch(() => {});
     } finally {
-      window.location.reload(); // clear all app state reliably
+      window.location.reload();
     }
   };
 
