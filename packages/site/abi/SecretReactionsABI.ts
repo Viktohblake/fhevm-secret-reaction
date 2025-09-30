@@ -19,12 +19,6 @@ export const SecretReactionsABI = {
           "internalType": "bytes32",
           "name": "reactionId",
           "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "user",
-          "type": "address"
         }
       ],
       "name": "Reacted",
@@ -135,7 +129,7 @@ export const SecretReactionsABI = {
         },
         {
           "internalType": "bytes",
-          "name": "zkProof",
+          "name": "inputProof",
           "type": "bytes"
         }
       ],

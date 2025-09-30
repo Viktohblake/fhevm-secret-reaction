@@ -83,34 +83,48 @@ export function useSecretReactions({
   const refresh = useCallback(() => {
     if (refreshingRef.current) return;
 
+    setDecTotal(undefined);
+    setDecMine(undefined);
+
     if (!info.address || !ethersReadonlyProvider) {
       setTotalHandle(undefined);
       setMyHandle(undefined);
       return;
     }
 
-    const contract = new ethers.Contract(info.address, info.abi, ethersReadonlyProvider);
+    const contract = new ethers.Contract(
+      info.address,
+      info.abi,
+      ethersReadonlyProvider
+    );
     // use SIGNER for getMyTally so msg.sender = connected wallet
-    const rw = ethersSigner ? new ethers.Contract(info.address, info.abi, ethersSigner) : null;
+    const rw = ethersSigner
+      ? new ethers.Contract(info.address, info.abi, ethersSigner)
+      : null;
 
     refreshingRef.current = true;
     setIsRefreshing(true);
 
-
-  const total = contract.getTotal(postId, reactionId);
-  const myTotal  = rw ? rw.getMyTally(postId, reactionId) : Promise.resolve(ethers.ZeroHash as unknown as string);
+    const total = contract.getTotal(postId, reactionId);
+    const myTotal = rw
+      ? rw.getMyTally(postId, reactionId)
+      : Promise.resolve(ethers.ZeroHash as unknown as string);
 
     Promise.all([total, myTotal])
       .then(([tot, mine]: [string, string]) => {
-        
-        const stillSameChain = sameChain.current ? sameChain.current(chainId) : true;
-        const stillSameSigner = sameSigner.current ? sameSigner.current(ethersSigner) : true;
-        if (infoRef.current?.address === info.address && stillSameChain && stillSameSigner) {
+        const stillSameChain = sameChain.current
+          ? sameChain.current(chainId)
+          : true;
+        const stillSameSigner = sameSigner.current
+          ? sameSigner.current(ethersSigner)
+          : true;
+        if (
+          infoRef.current?.address === info.address &&
+          stillSameChain &&
+          stillSameSigner
+        ) {
           setTotalHandle(tot);
           setMyHandle(mine);
-        
-          if (tot === ethers.ZeroHash) setDecTotal(BigInt(0));
-if (mine === ethers.ZeroHash) setDecMine(BigInt(0));
         }
       })
       .catch((e: any) => setMessage(`Read failed: ${e?.message ?? e}`))
@@ -118,85 +132,165 @@ if (mine === ethers.ZeroHash) setDecMine(BigInt(0));
         refreshingRef.current = false;
         setIsRefreshing(false);
       });
-  }, [ethersReadonlyProvider, ethersSigner, info.address, info.abi, postId, reactionId, chainId, sameChain, sameSigner]);
+  }, [
+    ethersReadonlyProvider,
+    ethersSigner,
+    info.address,
+    info.abi,
+    postId,
+    reactionId,
+    chainId,
+    sameChain,
+    sameSigner,
+  ]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  async function readHandlesDirect() {
+    if (!info.address || !ethersReadonlyProvider)
+      throw new Error("No provider/contract");
+    const ro = new ethers.Contract(
+      info.address,
+      info.abi,
+      ethersReadonlyProvider
+    );
+    const rw = ethersSigner
+      ? new ethers.Contract(info.address, info.abi, ethersSigner)
+      : null;
 
-  const decrypt = useCallback(async (which: "total" | "mine") => {
-    if (!info.address || !instance || !ethersSigner) return;
+    const [tot, mine] = await Promise.all([
+      ro.getTotal(postId, reactionId),
+      rw
+        ? rw.getMyTally(postId, reactionId)
+        : Promise.resolve(ethers.ZeroHash as unknown as string),
+    ]);
 
-    const handle = which === "total" ? totalHandle : myHandle;
-    if (!handle) return;
+    return { tot: String(tot), mine: String(mine) };
+  }
 
-    // ZeroHash = uninitialized => treat as 0
-    if (handle === ethers.ZeroHash) {
-      const zero = BigInt(0);
-      if (which === "total") setDecTotal(zero); else setDecMine(zero);
-      setMessage(`${which} = 0`);
-      return;
-    }
+  const decrypt = useCallback(
+    async (which: "total" | "mine", explicitHandle?: string) => {
+      if (!info.address || !instance || !ethersSigner) return;
 
-    setMessage(`Decrypt ${which}…`);
-    setIsWorking(true); workingRef.current = true;
-    try {
-      const sig = await FhevmDecryptionSignature.loadOrSign(
-        instance, [info.address], ethersSigner, storage
-      );
-      if (!sig) throw new Error("Decryption signature unavailable");
+      const handle =
+        explicitHandle ?? (which === "total" ? totalHandle : myHandle);
+      if (!handle) return;
 
-      const res = await instance.userDecrypt(
-        [{ handle, contractAddress: info.address }],
-        sig.privateKey, sig.publicKey, sig.signature,
-        sig.contractAddresses, sig.userAddress, sig.startTimestamp, sig.durationDays
-      );
+      if (handle === ethers.ZeroHash) {
+        const zero = BigInt(0);
+        if (which === "total") setDecTotal(zero);
+        else setDecMine(zero);
+        setMessage(`${which} = 0`);
+        return;
+      }
 
-      const clear = res[handle] as bigint;
-      if (which === "total") setDecTotal(clear); else setDecMine(clear);
-      setMessage(`${which} = ${clear.toString()}`);
-    } catch (e: any) {
-      setMessage(`Decrypt ${which} failed: ${e?.message ?? e}`);
-    } finally {
-      setIsWorking(false); workingRef.current = false;
-    }
-  }, [info.address, instance, ethersSigner, storage, totalHandle, myHandle]);
+      setMessage(`Decrypt ${which}…`);
+      setIsWorking(true);
+      workingRef.current = true;
+      try {
+        const sig = await FhevmDecryptionSignature.loadOrSign(
+          instance,
+          [info.address],
+          ethersSigner,
+          storage
+        );
+        if (!sig) throw new Error("Decryption signature unavailable");
 
-  const react = useCallback(async (amount: number) => {
-    if (workingRef.current) return;
-    if (!info.address || !instance || !ethersSigner || amount <= 0) return;
+        const res = await instance.userDecrypt(
+          [{ handle, contractAddress: info.address }],
+          sig.privateKey,
+          sig.publicKey,
+          sig.signature,
+          sig.contractAddresses,
+          sig.userAddress,
+          sig.startTimestamp,
+          sig.durationDays
+        );
 
-    setMessage(`React +${amount}…`);
-    setIsWorking(true); workingRef.current = true;
+        const clear = res[handle] as bigint;
+        if (which === "total") setDecTotal(clear);
+        else setDecMine(clear);
+        setMessage(`${which} = ${clear.toString()}`);
+      } catch (e: any) {
+        setMessage(`Decrypt ${which} failed: ${e?.message ?? e}`);
+      } finally {
+        setIsWorking(false);
+        workingRef.current = false;
+      }
+    },
+    [info.address, instance, ethersSigner, storage, totalHandle, myHandle]
+  );
 
-    try {
-      await new Promise(r => setTimeout(r, 60));
+  const react = useCallback(
+    async (amount: number) => {
+      if (workingRef.current) return;
+      if (!info.address || !instance || !ethersSigner || amount <= 0) return;
 
-      const user = await ethersSigner.getAddress();
-      const input = instance.createEncryptedInput(info.address, user);
-      input.add32(amount);
-      const enc = await input.encrypt();
+      setMessage(`React +${amount}…`);
+      setIsWorking(true);
+      workingRef.current = true;
 
-      const contract = new ethers.Contract(info.address, info.abi, ethersSigner);
-      const tx = await contract.react(postId, reactionId, enc.handles[0], enc.inputProof);
-      await tx.wait();
+      try {
+        await new Promise((r) => setTimeout(r, 60));
 
-      setMessage(`Reacted +${amount}`);
-      await refresh(); // pull latest handles
-      await decrypt("mine"); // you can always decrypt your own tally
-    } catch (e: any) {
-      setMessage(`React failed: ${e?.message ?? e}`);
-    } finally {
-      setIsWorking(false); workingRef.current = false;
-    }
-  }, [info.address, info.abi, instance, ethersSigner, postId, reactionId, refresh]);
+        const user = await ethersSigner.getAddress();
+        const input = instance.createEncryptedInput(info.address, user);
+        input.add32(amount);
+        const enc = await input.encrypt();
+
+        const contract = new ethers.Contract(
+          info.address,
+          info.abi,
+          ethersSigner
+        );
+        const tx = await contract.react(
+          postId,
+          reactionId,
+          enc.handles[0],
+          enc.inputProof
+        );
+        await tx.wait();
+
+        setMessage(`Reacted +${amount}`);
+
+        // Read fresh handles directly (don’t wait for state)
+        const { mine } = await readHandlesDirect();
+
+        // Update state handles (optional, keeps UI consistent)
+        setMyHandle(mine);
+
+        await decrypt("mine");
+
+        refresh();
+      } catch (e: any) {
+        setMessage(`React failed: ${e?.message ?? e}`);
+      } finally {
+        setIsWorking(false);
+        workingRef.current = false;
+      }
+    },
+    [
+      info.address,
+      info.abi,
+      instance,
+      ethersSigner,
+      postId,
+      reactionId,
+      refresh,
+    ]
+  );
 
   const requestTotalAccess = useCallback(async () => {
     if (!info.address || !ethersSigner) return;
 
     setMessage("Request total access…");
-    setIsWorking(true); workingRef.current = true;
+    setIsWorking(true);
+    workingRef.current = true;
 
     try {
-      const contract = new ethers.Contract(info.address, info.abi, ethersSigner);
+      const contract = new ethers.Contract(
+        info.address,
+        info.abi,
+        ethersSigner
+      );
       const tx = await contract.requestTotalAccess(postId, reactionId);
       await tx.wait();
       setMessage("Access granted. You can decrypt the total now.");
@@ -205,7 +299,8 @@ if (mine === ethers.ZeroHash) setDecMine(BigInt(0));
     } catch (e: any) {
       setMessage(`Request failed: ${e?.message ?? e}`);
     } finally {
-      setIsWorking(false); workingRef.current = false;
+      setIsWorking(false);
+      workingRef.current = false;
     }
   }, [info.address, info.abi, ethersSigner, postId, reactionId]);
 
@@ -222,7 +317,7 @@ if (mine === ethers.ZeroHash) setDecMine(BigInt(0));
     refresh,
     react,
     decryptTotal: () => decrypt("total"),
-    decryptMine : () => decrypt("mine"),
+    decryptMine: () => decrypt("mine"),
     requestTotalAccess,
     contractAddress: info.address,
   };
