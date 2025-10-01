@@ -53,8 +53,8 @@ contract SecretReactions is SepoliaConfig {
         _encryptedUserTallyByPostReactionAndUser[postId][reactionId][msg.sender] = mine;
 
         // Allow contract to re-serve handles; and the user can decrypt their own tally
-        FHE.allowThis(total);                 // contract can return this handle in getTotal(...)
-        FHE.allowThis(mine);             // contract can return this handle in getMyTally/getUserTally
+        FHE.allowThis(total);            // contract can return this handle in getTotal(...)
+        FHE.allowThis(mine);             // contract can return this handle in getMyTally
         FHE.allow(mine, msg.sender);     // caller can decrypt their personal tally
 
         emit Reacted(postId, reactionId);

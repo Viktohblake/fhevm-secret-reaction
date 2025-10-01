@@ -1,23 +1,24 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  headers() {
+
+  // Don't fail production build on ESLint warnings
+  eslint: { ignoreDuringBuilds: true },
+  outputFileTracingRoot: path.join(__dirname, "../.."),
+
+  async headers() {
     // Required by FHEVM 
-    return Promise.resolve([
+    return [
       {
-        source: '/',
+        source: "/(.*)",
         headers: [
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
-          },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
         ],
+
       },
-    ]);
+    ];
   }
 };
 

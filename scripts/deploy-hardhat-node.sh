@@ -3,6 +3,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 set -euo pipefail # Exit on error, undefined vars, and pipe errors
 
+# Skip on vercel
+if [ -n "$VERCEL" ] || [ -n "$CI" ]; then
+  echo "Skipping hardhat node/deploy on CI"
+  exit 0
+fi
+
 # *****************************************************************************
 # Config Parameters
 # *****************************************************************************

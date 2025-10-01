@@ -83,9 +83,6 @@ export function useSecretReactions({
   const refresh = useCallback(() => {
     if (refreshingRef.current) return;
 
-    setDecTotal(undefined);
-    setDecMine(undefined);
-
     if (!info.address || !ethersReadonlyProvider) {
       setTotalHandle(undefined);
       setMyHandle(undefined);
@@ -166,9 +163,19 @@ export function useSecretReactions({
     return { tot: String(tot), mine: String(mine) };
   }
 
+  useEffect(() => {
+    if (ethersSigner && info.address) {
+      refresh(); // ensure handles are fetched as soon as signer is ready
+    }
+  }, [ethersSigner, info.address, refresh]);
+
   const decrypt = useCallback(
     async (which: "total" | "mine", explicitHandle?: string) => {
       if (!info.address || !instance || !ethersSigner) return;
+
+      if (which === "total") {
+        await refresh();
+      }
 
       const handle =
         explicitHandle ?? (which === "total" ? totalHandle : myHandle);
@@ -248,7 +255,6 @@ export function useSecretReactions({
           enc.inputProof
         );
         await tx.wait();
-
         setMessage(`Reacted +${amount}`);
 
         // Read fresh handles directly
@@ -257,9 +263,8 @@ export function useSecretReactions({
         // Update state handles
         setMyHandle(mine);
 
+        await refresh();
         await decrypt("mine");
-
-        refresh();
       } catch (e: any) {
         // setMessage(`React failed: ${e?.message ?? e}`);
         setMessage("React failed");
