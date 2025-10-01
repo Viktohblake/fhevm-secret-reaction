@@ -18,7 +18,7 @@ export default function Page() {
   return (
     <div className="grid gap-4 mx-4">
       <h1 className="text-2xl font-bold">
-        Secret Reactions Demo (for social media and blogs)
+        Secret Reactions Demo (Private Encrypted Reactions with FHEVM)
       </h1>
       <p className="text-gray-700">
         React privately; decrypt totals when authorized.
