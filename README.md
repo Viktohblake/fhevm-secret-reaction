@@ -1,6 +1,10 @@
 # Secret Reactions.
 
 > Privacy-preserving social reactions (likes, claps, hearts) using [Zama’s FHEVM](https://docs.zama.ai).
+>
+>
+> <img width="1434" height="726" alt="Screenshot 2025-10-01 at 09 20 03" src="https://github.com/user-attachments/assets/387bf796-31d4-437d-a5a1-b0eb87ccc4bb" />
+
 
 ## ✨ Overview
 
@@ -29,11 +33,10 @@ It’s a Next.js app with:
 - Wallet connect (MetaMask, top-right).
 
 - Reaction bar per post:
-
-👏 React (encrypted increment).
-🔐 Decrypt mine (view your tally).
-🧮 Decrypt total (view post total, after access).
-🔑 Request access (on-chain permission).
+   > 👏 React (encrypted increment).
+   > 🔐 Decrypt mine (view your tally).
+   > 🧮 Decrypt total (view post total, after access).
+   > 🔑 Request access (on-chain permission).
 
 ## Features
 
