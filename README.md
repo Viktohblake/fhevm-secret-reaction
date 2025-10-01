@@ -33,10 +33,10 @@ It’s a Next.js app with:
 - Wallet connect (MetaMask, top-right).
 
 - Reaction bar per post:
-   > 👏 React (encrypted increment).
-   > 🔐 Decrypt mine (view your tally).
-   > 🧮 Decrypt total (view post total, after access).
-   > 🔑 Request access (on-chain permission).
+- a. React (encrypted increment).
+- b. Decrypt mine (view your tally).
+- c. 🧮 Decrypt total (view post total, after access).
+- d. 🔑 Request access (on-chain permission).
 
 ## Features
 
