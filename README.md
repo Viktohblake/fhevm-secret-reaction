@@ -1,6 +1,6 @@
 # Secret Reactions.
 
-> Privacy-preserving social reactions (likes, claps, hearts) using [Zama’s FHEVM](https://docs.zama.ai).
+> Privacy-preserving reactions using [Zama’s FHEVM](https://docs.zama.ai).
 >
 >
 > <img width="1434" height="726" alt="Screenshot 2025-10-01 at 09 20 03" src="https://github.com/user-attachments/assets/387bf796-31d4-437d-a5a1-b0eb87ccc4bb" />
@@ -8,7 +8,7 @@
 
 ## ✨ Overview
 
-Secret Reactions shows how to build a social “reaction” feature (like clap 👏 or heart ❤️) where:
+Secret Reactions shows how:
 - Reaction **counts are encrypted** on-chain.  
 - Each user’s own tally is **private** — only they can decrypt it.  
 - Post totals can be decrypted only if access is explicitly requested.  
