@@ -1,10 +1,39 @@
-# FHEVM React Template
+# Secret Reactions.
 
-The FHEVM React Template is an ultra-minimal React project for building and running an FHEVM-enabled dApp.
-It works alongside the [fhevm-hardhat-template](https://github.com/zama-ai/fhevm-hardhat-template)
-and provides a simple development frontend for interacting with the `FHECounter.sol` contract.
+> Privacy-preserving social reactions (likes, claps, hearts) using [Zama’s FHEVM](https://docs.zama.ai).
 
-This template also illustrates how to run your FHEVM-dApp on both Sepolia as well as a local Hardhat Node (much faster).
+## ✨ Overview
+
+Secret Reactions shows how to build a social “reaction” feature (like clap 👏 or heart ❤️) where:
+- Reaction **counts are encrypted** on-chain.  
+- Each user’s own tally is **private** — only they can decrypt it.  
+- Post totals can be decrypted only if access is explicitly requested.  
+- On-chain observers only see **that a reaction occurred**, not who reacted or how much.  
+
+## 📦 Project Structure
+
+- In the root, I have the packages folder (which contains contract + frontend folder)
+- In the root, I have the scripts folder (which automates local dev flow)
+- In packages the contract folder is `<root>/packages/fhevm-hardhat-template`
+- In packages the frontend folder is `<root>/packages/site/`
+- **`<root>/packages/site/fhevm`**: This folder contains the essential hooks needed to interact with FHEVM-enabled smart contracts. It is meant to be easily copied and integrated into any FHEVM + React project.
+- **`<root>/packages/site/hooks/useSecretReactions.tsx`**: My custom hook, which utilizes the useFhevm hook.
+- **`<root>/packages/site/hooks/metamask`**: This folder includes hooks designed to manage the MetaMask Wallet provider. These hooks can be easily adapted or replaced to support other wallet providers, following the EIP-6963 standard,
+- Additionally, the project is designed to be flexible, allowing developers to easily replace `ethers.js` with a more React-friendly library of their choice, such as `Wagmi`.
+
+## 🖥️ Frontend
+
+Frontend lives in packages/site
+It’s a Next.js app with:
+
+- Wallet connect (MetaMask, top-right).
+
+- Reaction bar per post:
+
+👏 React (encrypted increment).
+🔐 Decrypt mine (view your tally).
+🧮 Decrypt total (view post total, after access).
+🔑 Request access (on-chain permission).
 
 ## Features
 
@@ -16,15 +45,6 @@ This template also illustrates how to run your FHEVM-dApp on both Sepolia as wel
 ## Requirements
 
 - You need to have Metamask browser extension installed on your browser.
-
-## Local Hardhat Network (to add in MetaMask)
-
-Follow the step-by-step guide in the [Hardhat + MetaMask](https://docs.metamask.io/wallet/how-to/run-devnet/) documentation to set up your local devnet using Hardhat and MetaMask.
-
-- Name: Hardhat
-- RPC URL: http://127.0.0.1:8545
-- Chain ID: 31337
-- Currency symbol: ETH
 
 ## Install
 
@@ -73,50 +93,6 @@ npm run deploy:sepolia
 2. In your browser open `http://localhost:3000`
 
 3. Open the Metamask extension to connect to the Sepolia network
-
-## How to fix Hardhat Node + Metamask Errors ?
-
-When using MetaMask as a wallet provider with a development node like Hardhat, you may encounter two common types of errors:
-
-### 1. ⚠️ Nonce Mismatch ❌💥
-
-MetaMask tracks wallet nonces (the number of transactions sent from a wallet). However, if you restart your Hardhat node, the nonce is reset on the dev node, but MetaMask does not update its internal nonce tracking. This discrepancy causes a nonce mismatch error.
-
-### 2. ⚠️ View Function Call Result Mismatch ❌💥
-
-MetaMask caches the results of view function calls. If you restart your Hardhat node, MetaMask may return outdated cached data corresponding to a previous instance of the node, leading to incorrect results.
-
-### ✅ How to Fix Nonce Mismatch:
-
-To fix the nonce mismatch error, simply clear the MetaMask cache:
-
-1. Open the MetaMask browser extension.
-2. Select the Hardhat network.
-3. Go to Settings > Advanced.
-4. Click the "Clear Activity Tab" red button to reset the nonce tracking.
-
-The correct way to do this is also explained [here](https://docs.metamask.io/wallet/how-to/run-devnet/).
-
-### ✅ How to Fix View Function Return Value Mismatch:
-
-To fix the view function result mismatch:
-
-1. Restart the entire browser. MetaMask stores its cache in the extension's memory, which cannot be cleared by simply clearing the browser cache or using MetaMask's built-in cache cleaning options.
-
-By following these steps, you can ensure that MetaMask syncs correctly with your Hardhat node and avoid potential issues related to nonces and cached view function results.
-
-## Project Structure Overview
-
-### Key Files/Folders
-
-- **`<root>/packages/site/fhevm`**: This folder contains the essential hooks needed to interact with FHEVM-enabled smart contracts. It is meant to be easily copied and integrated into any FHEVM + React project.
-
-- **`<root>/packages/site/hooks/useFHECounter.tsx`**: A simple React custom hook that demonstrates how to use the `useFhevm` hook in a basic use case, serving as an example of integration.
-
-### Secondary Files/Folders
-
-- **`<root>/packages/site/hooks/metamask`**: This folder includes hooks designed to manage the MetaMask Wallet provider. These hooks can be easily adapted or replaced to support other wallet providers, following the EIP-6963 standard,
-- Additionally, the project is designed to be flexible, allowing developers to easily replace `ethers.js` with a more React-friendly library of their choice, such as `Wagmi`.
 
 ## Documentation
 
