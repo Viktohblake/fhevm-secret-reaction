@@ -29,7 +29,11 @@
       "@fhevm/mock-utils": "latest",
       "@fhevm/host-contracts": "latest",
       "@fhevm/solidity": "latest",
-      "@zama-fhe/relayer-sdk": "latest"
+      "@zama-fhe/relayer-sdk": "latest",
+       "react": "19.2.3",
+      "react-dom": "19.2.3",
+      "@types/react": "19.2.7",
+      "@types/react-dom": "19.2.3"
     }
   }
 }
