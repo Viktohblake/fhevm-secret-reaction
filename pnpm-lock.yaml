@@ -24,10 +24,6 @@ importers:
       '@zama-fhe/relayer-sdk':
         specifier: latest
         version: 0.3.0-8
-    devDependencies:
-      hardhat:
-        specifier: ^2.28.0
-        version: 2.28.0(ts-node@10.9.2(@types/node@22.7.5)(typescript@5.9.3))(typescript@5.9.3)
 
   packages/fhevm-hardhat-template:
     dependencies:
