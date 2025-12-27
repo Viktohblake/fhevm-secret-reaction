@@ -7,9 +7,9 @@ pragma solidity ^0.8.24;
  */
 
 import { FHE, euint32, externalEuint32 } from "@fhevm/solidity/lib/FHE.sol";
-import { SepoliaConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
+import { ZamaEthereumConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
 
-contract SecretReactions is SepoliaConfig {
+contract SecretReactions is ZamaEthereumConfig {
 
     /// @dev Encrypted totals: total[postId][reactionId]
     mapping(bytes32 => mapping(bytes32 => euint32)) private _encryptedTotalByPostAndReaction;

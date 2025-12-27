@@ -3,7 +3,7 @@
 import { idFromSlug } from "@/lib/ids";
 import { useInMemoryStorage } from "@/hooks/useInMemoryStorage";
 import { useMetaMaskEthersSigner } from "@/hooks/metamask/useMetaMaskEthersSigner";
-import { useFhevm } from "@fhevm/react";
+import { useFhevm } from "fhevm-sdk";
 import { useSecretReactions } from "@/hooks/useSecretReactions";
 
 export function ReactionBar({

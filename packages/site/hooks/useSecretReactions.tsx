@@ -6,7 +6,7 @@ import {
   FhevmDecryptionSignature,
   type FhevmInstance,
   type GenericStringStorage,
-} from "@fhevm/react";
+} from "fhevm-sdk";
 import { SecretReactionsABI } from "@/abi/SecretReactionsABI";
 import { SecretReactionsAddresses } from "@/abi/SecretReactionsAddresses";
 
@@ -212,7 +212,7 @@ export function useSecretReactions({
           sig.durationDays
         );
 
-        const clear = res[handle] as bigint;
+        const clear = (res as any)[handle] as bigint;
         if (which === "total") setDecTotal(clear);
         else setDecMine(clear);
         setMessage(`${which} = ${clear.toString()}`);

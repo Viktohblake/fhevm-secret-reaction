@@ -2,7 +2,7 @@
 
 import { POSTS } from "@/lib/data";
 import { PostCard } from "@/components/PostCard";
-import { useFhevm } from "@fhevm/react";
+import { useFhevm } from "fhevm-sdk";
 import { useMetaMaskEthersSigner } from "@/hooks/metamask/useMetaMaskEthersSigner";
 
 export default function Page() {

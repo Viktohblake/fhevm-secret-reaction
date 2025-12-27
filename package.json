@@ -19,9 +19,17 @@
     "deploy:hardhat-node": "npm run is-hardhat-node-running && npx -w ./packages/fhevm-hardhat-template hardhat deploy --network localhost"
   },
   "dependencies": {
-    "@fhevm/hardhat-plugin": "^0.1.0",
-    "@fhevm/react": "^0.3.0",
-    "@fhevm/solidity": "^0.10.0",
-    "@zama-fhe/relayer-sdk": "^0.3.0-8"
+    "@fhevm/hardhat-plugin": "0.1.0",
+    "@fhevm/solidity": "latest",
+    "@zama-fhe/relayer-sdk": "latest"
+  },
+  "pnpm": {
+    "overrides": {
+      "@fhevm/hardhat-plugin": "0.3.0-3",
+      "@fhevm/mock-utils": "latest",
+      "@fhevm/host-contracts": "latest",
+      "@fhevm/solidity": "latest",
+      "@zama-fhe/relayer-sdk": "latest"
+    }
   }
 }
