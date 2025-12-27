@@ -264,7 +264,6 @@ export function useSecretReactions({
         setMyHandle(mine);
 
         await refresh();
-        await decrypt("mine");
       } catch (e: any) {
         // setMessage(`React failed: ${e?.message ?? e}`);
         setMessage("React failed");

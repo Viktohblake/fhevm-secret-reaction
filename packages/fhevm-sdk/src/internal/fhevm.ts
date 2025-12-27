@@ -297,6 +297,8 @@ export const createFhevmInstance = async (parameters: {
     network: providerOrUrl,
     publicKey: pub.publicKey,
     publicParams: pub.publicParams,
+      // IMPORTANT: force relayer calls to go through Next.js proxy
+  relayerUrl: `${window.location.origin}/api/relayer`,
   };
 
   // notify that state === "creating"

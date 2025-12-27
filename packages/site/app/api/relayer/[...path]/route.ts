@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const RELAYER_BASE = "https://relayer.testnet.zama.org/v1";
+const RELAYER_BASE = "https://relayer.testnet.zama.org";
 
 // Next.js 15: ctx.params is a Promise, and should be typed with RouteContext<...>
 export async function GET(_req: NextRequest, ctx: RouteContext<"/api/relayer/[...path]">) {
