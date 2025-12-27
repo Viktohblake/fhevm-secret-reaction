@@ -1,10 +1,8 @@
 # Secret Reactions.
 
 > Privacy-preserving reactions using [Zama’s FHEVM](https://docs.zama.ai).
->
->
-> <img width="1434" height="726" alt="Screenshot 2025-10-01 at 09 20 03" src="https://github.com/user-attachments/assets/387bf796-31d4-437d-a5a1-b0eb87ccc4bb" />
 
+<img width="1440" height="727" alt="Screenshot 2025-12-27 at 12 14 11" src="https://github.com/user-attachments/assets/ce15e0f6-2113-468a-bb75-20b934e14eee" />
 
 ## ✨ Overview
 
